@@ -1,12 +1,20 @@
-import { Get, Controller } from '@nestjs/common';
+import { Get, Response, Controller } from '@nestjs/common';
 import { AppService } from './app.service';
+import { UsersTasks } from 'users.tasks';
+import { KueService } from 'nestjs-kue';
 
 @Controller()
 export class AppController {
-  constructor(private readonly appService: AppService) {}
+  constructor(
+    private readonly appService: AppService,
+    private readonly kueService: KueService,
+    private readonly tasks: UsersTasks
+  ) {}
 
   @Get()
-  root(): string {
-    return this.appService.root();
+  root(@Response() res): string {
+    const job = this.kueService.createJob(this.tasks.justATest, {a: 'b'}).save();
+    job.on('complete', (result) => res.send(result));
+    // return this.appService.root();
   }
 }
